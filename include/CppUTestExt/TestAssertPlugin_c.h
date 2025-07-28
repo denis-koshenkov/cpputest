@@ -28,14 +28,14 @@
 #ifndef D_TestAssertPlugin_c_h
 #define D_TestAssertPlugin_c_h
 
-#define TEST_ASSERT_PLUGIN_ASSERT() TEST_ASSERT_PLUGIN_ASSERT_IMPL()
+#define TEST_ASSERT_PLUGIN_ASSERT(expr) TEST_ASSERT_PLUGIN_ASSERT_IMPL(#expr)
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-extern void TEST_ASSERT_PLUGIN_ASSERT_IMPL();
+extern void TEST_ASSERT_PLUGIN_ASSERT_IMPL(const char *assertion);
 
 #ifdef __cplusplus
 }

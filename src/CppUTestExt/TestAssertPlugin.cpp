@@ -28,8 +28,13 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/TestAssertPlugin.h"
 
+static constexpr size_t MAX_ASSERTION_TEXT_LENGTH = 100;
+static const char OVERFLOW_MESSAGE[] = "Your assertion did not fit into buffer, use a smaller one";
+
 static bool isAssertionExpectedToFail_ = false;
 static bool assertionFailed_ = false;
+static char expectedAssertionText[MAX_ASSERTION_TEXT_LENGTH + 1]; // +1 for NULL terminator
+static char actualAssertionText[MAX_ASSERTION_TEXT_LENGTH + 1]; // +1 for NULL terminator
 
 TestAssertPlugin::TestAssertPlugin(const SimpleString& name) : TestPlugin(name) {}
 
@@ -44,26 +49,49 @@ void TestAssertPlugin::preTestAction(UtestShell&, TestResult&)
 void TestAssertPlugin::postTestAction(UtestShell& test, TestResult& result)
 {
     if (assertionFailed_) {
-        /* Test exited right after assertion failed. Fail the test if assertion was not expected to fail. */
+        /* Test exited right after assertion failed. Fail the test if no assertions were expected to fail,
+        or if not the expected assertion failed. */
         if (!isAssertionExpectedToFail_) {
-            const SimpleString message = "Assertion failed, but no assertions expected to fail";
+            SimpleString message = "Assertion \"";
+            message += actualAssertionText;
+            message += "\" failed, but no assertions expected to fail";
+            result.addFailure(TestFailure(&test, message));
+        } else if (SimpleString::StrCmp(expectedAssertionText, actualAssertionText) != 0) {
+            /* Assertion failed, but not the one that was expected */
+            SimpleString message = "Assertion failed, but not the expected one. Expected \"";
+            message += expectedAssertionText;
+            message += "\" to fail, but \"";
+            message += actualAssertionText;
+            message += "\" failed.";
             result.addFailure(TestFailure(&test, message));
         }
     } else {
         /* Test ran to the end, no assertions failed. Fail the test if assertion was expected to fail.*/
         if (isAssertionExpectedToFail_) {
-            const SimpleString message = "Expected an assertion to fail, but no assertions failed";
+            SimpleString message = "Expected assertion \"";
+            message += expectedAssertionText;
+            message += "\" to fail, but no assertions failed";
             result.addFailure(TestFailure(&test, message));
         }
     }
 }
 
-void TestAssertPlugin::expectAssertion()
+void TestAssertPlugin::expectAssertion(const char *assertion)
 {
     isAssertionExpectedToFail_ = true;
+    if (SimpleString::StrLen(assertion) > MAX_ASSERTION_TEXT_LENGTH) {
+        assertion = OVERFLOW_MESSAGE;
+    }
+    /* +1 to also copy the NULL terminator */
+    SimpleString::StrNCpy(expectedAssertionText, assertion, SimpleString::StrLen(assertion) + 1);
 }
 
-void TestAssertPlugin::assert() {
+void TestAssertPlugin::assert(const char *assertion) {
     assertionFailed_ = true;
+    if (SimpleString::StrLen(assertion) > MAX_ASSERTION_TEXT_LENGTH) {
+        assertion = OVERFLOW_MESSAGE;
+    }
+    /* +1 to also copy the NULL terminator */
+    SimpleString::StrNCpy(actualAssertionText, assertion, SimpleString::StrLen(assertion) + 1);
     UtestShell::getCurrent()->exitTest();
 }

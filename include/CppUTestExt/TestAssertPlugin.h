@@ -40,8 +40,8 @@ public:
     virtual void preTestAction(UtestShell &, TestResult &) _override;
     virtual void postTestAction(UtestShell &, TestResult &) _override;
 
-    static void expectAssertion();
-    static void assert();
+    static void expectAssertion(const char *assertion);
+    static void assert(const char *assertion);
 };
 
 #endif
