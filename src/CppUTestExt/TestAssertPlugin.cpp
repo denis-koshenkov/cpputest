@@ -29,12 +29,17 @@
 #include "CppUTestExt/TestAssertPlugin.h"
 
 static constexpr size_t MAX_ASSERTION_TEXT_LENGTH = 100;
-static const char OVERFLOW_MESSAGE[] = "Your assertion did not fit into buffer, use a smaller one";
+static const char ASSERTION_TEXT_OVERFLOW_MESSAGE[] = "Your assertion did not fit into buffer, use a smaller one";
+
+static constexpr size_t MAX_ASSERTION_FUNCTION_NAME_TEXT_LENGTH = 100;
+static const char ASSERTION_FUNCTION_NAME_OVERFLOW_MESSAGE[] = "Your assertion function name did not fit into buffer, use a smaller one";
 
 static bool isAssertionExpectedToFail_ = false;
 static bool assertionFailed_ = false;
 static char expectedAssertionText[MAX_ASSERTION_TEXT_LENGTH + 1]; // +1 for NULL terminator
 static char actualAssertionText[MAX_ASSERTION_TEXT_LENGTH + 1]; // +1 for NULL terminator
+static char expectedAssertionFunctionName[MAX_ASSERTION_FUNCTION_NAME_TEXT_LENGTH + 1]; // +1 for NULL terminator
+static char actualAssertionFunctionName[MAX_ASSERTION_FUNCTION_NAME_TEXT_LENGTH + 1]; // +1 for NULL terminator
 
 TestAssertPlugin::TestAssertPlugin(const SimpleString& name) : TestPlugin(name) {}
 
@@ -56,12 +61,17 @@ void TestAssertPlugin::postTestAction(UtestShell& test, TestResult& result)
             message += actualAssertionText;
             message += "\" failed, but no assertions expected to fail";
             result.addFailure(TestFailure(&test, message));
-        } else if (SimpleString::StrCmp(expectedAssertionText, actualAssertionText) != 0) {
+        } else if ((SimpleString::StrCmp(expectedAssertionText, actualAssertionText) != 0)
+                   || (SimpleString::StrCmp(expectedAssertionFunctionName, actualAssertionFunctionName) != 0)) {
             /* Assertion failed, but not the one that was expected */
             SimpleString message = "Assertion failed, but not the expected one. Expected \"";
             message += expectedAssertionText;
+            message += "\" in function \"";
+            message += expectedAssertionFunctionName;
             message += "\" to fail, but \"";
             message += actualAssertionText;
+            message += "\" in function \"";
+            message += actualAssertionFunctionName;
             message += "\" failed.";
             result.addFailure(TestFailure(&test, message));
         }
@@ -76,22 +86,30 @@ void TestAssertPlugin::postTestAction(UtestShell& test, TestResult& result)
     }
 }
 
-void TestAssertPlugin::expectAssertion(const char *assertion)
+void TestAssertPlugin::expectAssertion(const char *assertion, const char *function_name)
 {
     isAssertionExpectedToFail_ = true;
     if (SimpleString::StrLen(assertion) > MAX_ASSERTION_TEXT_LENGTH) {
-        assertion = OVERFLOW_MESSAGE;
+        assertion = ASSERTION_TEXT_OVERFLOW_MESSAGE;
+    }
+    if (SimpleString::StrLen(function_name) > MAX_ASSERTION_FUNCTION_NAME_TEXT_LENGTH) {
+        assertion = ASSERTION_FUNCTION_NAME_OVERFLOW_MESSAGE;
     }
     /* +1 to also copy the NULL terminator */
     SimpleString::StrNCpy(expectedAssertionText, assertion, SimpleString::StrLen(assertion) + 1);
+    SimpleString::StrNCpy(expectedAssertionFunctionName, function_name, SimpleString::StrLen(function_name) + 1);
 }
 
-void TestAssertPlugin::assert(const char *assertion) {
+void TestAssertPlugin::assert(const char *assertion, const char *function_name) {
     assertionFailed_ = true;
     if (SimpleString::StrLen(assertion) > MAX_ASSERTION_TEXT_LENGTH) {
-        assertion = OVERFLOW_MESSAGE;
+        assertion = ASSERTION_TEXT_OVERFLOW_MESSAGE;
+    }
+    if (SimpleString::StrLen(function_name) > MAX_ASSERTION_FUNCTION_NAME_TEXT_LENGTH) {
+        assertion = ASSERTION_FUNCTION_NAME_OVERFLOW_MESSAGE;
     }
     /* +1 to also copy the NULL terminator */
     SimpleString::StrNCpy(actualAssertionText, assertion, SimpleString::StrLen(assertion) + 1);
+    SimpleString::StrNCpy(actualAssertionFunctionName, function_name, SimpleString::StrLen(function_name) + 1);
     UtestShell::getCurrent()->exitTest();
 }

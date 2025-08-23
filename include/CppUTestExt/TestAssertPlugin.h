@@ -31,6 +31,9 @@
 #include "CppUTest/SimpleString.h"
 #include "CppUTest/TestPlugin.h"
 
+#define TEST_ASSERT_PLUGIN_ASSERT(expr, func) TestAssertPlugin::assert(#expr, func);
+#define TEST_ASSERT_PLUGIN_EXPECT_ASSERTION(expr, func) TestAssertPlugin::expectAssertion(expr, func);
+
 class TestAssertPlugin : public TestPlugin
 {
 public:
@@ -40,8 +43,8 @@ public:
     virtual void preTestAction(UtestShell &, TestResult &) _override;
     virtual void postTestAction(UtestShell &, TestResult &) _override;
 
-    static void expectAssertion(const char *assertion);
-    static void assert(const char *assertion);
+    static void expectAssertion(const char *assertion, const char *function_name);
+    static void assert(const char *assertion, const char *function_name);
 };
 
 #endif

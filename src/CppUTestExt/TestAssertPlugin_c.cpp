@@ -30,6 +30,12 @@
 
 extern "C" {
 
-void TEST_ASSERT_PLUGIN_ASSERT_IMPL(const char *assertion) { TestAssertPlugin::assert(assertion); }
+void TEST_ASSERT_PLUGIN_ASSERT_IMPL(const char *assertion, const char *function_name) {
+    TestAssertPlugin::assert(assertion, function_name);
+}
+
+void TEST_ASSERT_PLUGIN_EXPECT_ASSERTION_IMPL(const char *assertion, const char *function_name) {
+    TestAssertPlugin::expectAssertion(assertion, function_name);
+}
 
 }

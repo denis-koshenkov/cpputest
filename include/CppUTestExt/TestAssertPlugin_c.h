@@ -28,14 +28,16 @@
 #ifndef D_TestAssertPlugin_c_h
 #define D_TestAssertPlugin_c_h
 
-#define TEST_ASSERT_PLUGIN_ASSERT(expr) TEST_ASSERT_PLUGIN_ASSERT_IMPL(#expr)
+#define TEST_ASSERT_PLUGIN_C_ASSERT(expr, func) TEST_ASSERT_PLUGIN_ASSERT_IMPL(#expr, func)
+#define TEST_ASSERT_PLUGIN_C_EXPECT_ASSERTION(expr, func) TEST_ASSERT_PLUGIN_EXPECT_ASSERTION_IMPL(expr, func)
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-extern void TEST_ASSERT_PLUGIN_ASSERT_IMPL(const char *assertion);
+extern void TEST_ASSERT_PLUGIN_ASSERT_IMPL(const char *assertion, const char *assert_function_name);
+extern void TEST_ASSERT_PLUGIN_EXPECT_ASSERTION_IMPL(const char *assertion, const char *assert_function_name);
 
 #ifdef __cplusplus
 }
