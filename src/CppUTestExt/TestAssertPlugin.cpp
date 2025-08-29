@@ -59,6 +59,8 @@ void TestAssertPlugin::postTestAction(UtestShell& test, TestResult& result)
         if (!isAssertionExpectedToFail_) {
             SimpleString message = "Assertion \"";
             message += actualAssertionText;
+            message += "\" in function \"";
+            message += actualAssertionFunctionName;
             message += "\" failed, but no assertions expected to fail";
             result.addFailure(TestFailure(&test, message));
         } else if ((SimpleString::StrCmp(expectedAssertionText, actualAssertionText) != 0)
